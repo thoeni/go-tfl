@@ -9,7 +9,7 @@ The current status of the project is in its early stages, therefore many things 
 
 Create a tfl Client, call the `GetTubeStatus` method and you'll get back a `[]Report` array
 
-```golang
+```go
 import "github.com/thoeni/go-tfl"
 
 func main() {
