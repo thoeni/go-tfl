@@ -10,16 +10,20 @@ import (
 	"testing"
 )
 
+const (
+	testDataCorrect   string = "test-data/tflResponse"
+	testDataMalformed string = "test-data/tflResponseMalformed"
+)
+
 func TestMain(m *testing.M) {
 	flag.Parse()
 	os.Exit(m.Run())
 }
 
 func TestDecodeTflResponse(t *testing.T) {
-	path := "tflResponse"
-	inFile, _ := os.OpenFile(path, os.O_RDONLY, 0666)
+	responseExample, _ := os.OpenFile(testDataCorrect, os.O_RDONLY, 0666)
 
-	statuses, err := decodeTflResponse(inFile)
+	statuses, err := decodeTflResponse(responseExample)
 
 	if err != nil {
 		t.Error("File could not be unmarshalled into a status array")
@@ -30,10 +34,9 @@ func TestDecodeTflResponse(t *testing.T) {
 }
 
 func TestDecodeTflResponseMalformed(t *testing.T) {
-	path := "tflResponseMalformed"
-	inFile, _ := os.OpenFile(path, os.O_RDONLY, 0666)
+	malformedResponseExample, _ := os.OpenFile(testDataMalformed, os.O_RDONLY, 0666)
 
-	_, err := decodeTflResponse(inFile)
+	_, err := decodeTflResponse(malformedResponseExample)
 	if err == nil {
 		t.Error("File should not be unmarshalled into a status array")
 	}
@@ -48,8 +51,7 @@ func TestNewClient(t *testing.T) {
 }
 
 func TestGetTubeStatus(t *testing.T) {
-	path := "tflResponse"
-	mockTflResponse, _ := ioutil.ReadFile(path)
+	mockTflResponse, _ := ioutil.ReadFile(testDataCorrect)
 	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
 		fmt.Fprintln(w, string(mockTflResponse))
