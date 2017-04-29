@@ -13,11 +13,12 @@ Create a tfl Client, call the `GetTubeStatus` method and you'll get back a `[]Re
 import "github.com/thoeni/go-tfl"
 
 func main() {
-  client := tfl.NewClient()
-  reports, err := client.GetTubeStatus()
-  if err != nil {
-    log.Print("Error while retrieving Tube statuses")
-    return err
-  }
+	client := tfl.NewClient()
+	reports, err := client.GetTubeStatus()
+	if err != nil {
+		log.Print("Error while retrieving Tube statuses")
+		return
+	}
+	fmt.Println(reports)
 }
 ```
