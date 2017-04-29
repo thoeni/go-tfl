@@ -6,6 +6,7 @@ import (
 	"io"
 	"log"
 	"net/http"
+	"strings"
 )
 
 // Client holds few properties and is receiver for few methods to interact with TFL apis
@@ -52,4 +53,14 @@ func decodeTflResponse(resp io.Reader) ([]Report, error) {
 	}
 
 	return data, nil
+}
+
+// ReportArrayToMap helps to convert the []Report into a map[string]Report for easier accessibility
+// The key will be the line name toLower(case)
+func ReportArrayToMap(reportArray []Report) map[string]Report {
+	reportMap := make(map[string]Report)
+	for _, report := range reportArray {
+		reportMap[strings.ToLower(report.Name)] = report
+	}
+	return reportMap
 }

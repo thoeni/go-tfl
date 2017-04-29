@@ -70,6 +70,25 @@ func TestGetTubeStatus(t *testing.T) {
 	}
 }
 
+func TestReportArrayToMap(t *testing.T) {
+	reportArray := make([]Report, 3)
+	reportArray[0] = Report{Name: "line1", LineStatuses: []Status{{StatusSeverity: 1, StatusSeverityDescription: "", Reason: ""}, {StatusSeverity: 9, StatusSeverityDescription: "", Reason: ""}}}
+	reportArray[1] = Report{Name: "line2", LineStatuses: []Status{{StatusSeverity: 2, StatusSeverityDescription: "", Reason: ""}, {StatusSeverity: 8, StatusSeverityDescription: "", Reason: ""}}}
+	reportArray[2] = Report{Name: "line3", LineStatuses: []Status{{StatusSeverity: 3, StatusSeverityDescription: "", Reason: ""}, {StatusSeverity: 7, StatusSeverityDescription: "", Reason: ""}}}
+
+	reportMap := ReportArrayToMap(reportArray)
+
+	if len(reportMap) != 3 {
+		t.Error("Mapper did not map all lines")
+	}
+	if (reportMap["line1"].LineStatuses[0].StatusSeverity != 1) {
+		t.Error("Status serverity for line1 is not correct")
+	}
+	if (reportMap["line3"].LineStatuses[1].StatusSeverity != 7) {
+		t.Error("Status serverity for line3 is not correct")
+	}
+}
+
 func TestGetTubeStatusFailure(t *testing.T) {
 	ts := httptest.NewUnstartedServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
