@@ -10,25 +10,30 @@ import (
 )
 
 // Client holds few properties and is receiver for few methods to interact with TFL apis
-type Client struct {
+type Client interface {
+	GetTubeStatus() ([]Report, error)
+	SetBaseURL(newURL string)
+}
+
+type DefaultClient struct {
 	baseURL string
 }
 
 // NewClient returns a pointer to a TFL client
-func NewClient() *Client {
-	client := Client{
+func NewClient() *DefaultClient {
+	client := DefaultClient{
 		baseURL: "https://api.tfl.gov.uk/",
 	}
 	return &client
 }
 
 // SetBaseURL sets a custom URL if the default TFL one needs to be changed
-func (c *Client) SetBaseURL(newURL string) {
+func (c *DefaultClient) SetBaseURL(newURL string) {
 	c.baseURL = newURL
 }
 
 // GetTubeStatus retrieves Tube status
-func (c *Client) GetTubeStatus() ([]Report, error) {
+func (c *DefaultClient) GetTubeStatus() ([]Report, error) {
 	url := c.baseURL + "Line/Mode/tube,dlr,overground,tflrail/Status/"
 
 	res, err := http.Get(url)
