@@ -7,9 +7,10 @@ import (
 	"log"
 	"net/http"
 	"strings"
+	"time"
 )
 
-// Client holds few properties and is receiver for few methods to interact with TFL apis
+// Client is implemented as default client or cached client
 type Client interface {
 	GetTubeStatus() ([]Report, error)
 	SetBaseURL(newURL string)
@@ -17,14 +18,6 @@ type Client interface {
 
 type DefaultClient struct {
 	baseURL string
-}
-
-// NewClient returns a pointer to a TFL client
-func NewClient() *DefaultClient {
-	client := DefaultClient{
-		baseURL: "https://api.tfl.gov.uk/",
-	}
-	return &client
 }
 
 // SetBaseURL sets a custom URL if the default TFL one needs to be changed
@@ -45,6 +38,49 @@ func (c *DefaultClient) GetTubeStatus() ([]Report, error) {
 	defer res.Body.Close()
 
 	return decodeTflResponse(res.Body)
+}
+
+// NewClient returns a pointer to a TFL client
+func NewClient() *DefaultClient {
+	client := DefaultClient{
+		baseURL: "https://api.tfl.gov.uk/",
+	}
+	return &client
+}
+
+// InMemoryCachedClient embeds a Client and caches the result
+type InMemoryCachedClient struct {
+	Client                      Client
+	TubeStatus                  []Report
+	LastUpdated                 time.Time
+	InvalidateIntervalInSeconds float64
+}
+
+// GetTubeStatus retrieves Tube status if cache has expired and saves the result back into the cache
+func (c *InMemoryCachedClient) GetTubeStatus() ([]Report, error) {
+	if time.Since(c.LastUpdated).Seconds() > c.InvalidateIntervalInSeconds {
+		r, e := c.Client.GetTubeStatus()
+		c.TubeStatus = r
+		c.LastUpdated = time.Now()
+		return c.TubeStatus, e
+	}
+	return c.TubeStatus, nil
+}
+
+// SetBaseURL sets a custom URL if the default TFL one needs to be changed
+func (c *InMemoryCachedClient) SetBaseURL(newURL string) {
+	c.Client.SetBaseURL(newURL)
+}
+
+// NewCachedClient returns a pointer to a TFL in memory cached client
+func NewCachedClient(cacheDurationSeconds int) *InMemoryCachedClient {
+	client := InMemoryCachedClient{
+		Client:                      NewClient(),
+		TubeStatus:                  []Report{},
+		LastUpdated:                 time.Now().Add(-time.Duration(cacheDurationSeconds+1) * time.Second),
+		InvalidateIntervalInSeconds: float64(cacheDurationSeconds),
+	}
+	return &client
 }
 
 func decodeTflResponse(resp io.Reader) ([]Report, error) {
