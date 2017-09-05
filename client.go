@@ -17,6 +17,7 @@ type Client interface {
 }
 
 type DefaultClient struct {
+	http    *http.Client
 	baseURL string
 }
 
@@ -29,7 +30,7 @@ func (c *DefaultClient) SetBaseURL(newURL string) {
 func (c *DefaultClient) GetTubeStatus() ([]Report, error) {
 	url := c.baseURL + "Line/Mode/tube,dlr,overground,tflrail/Status/"
 
-	res, err := http.Get(url)
+	res, err := c.http.Get(url)
 	if err != nil {
 		log.Print("Couldn't get TFL data")
 		log.Print(err)
@@ -41,8 +42,9 @@ func (c *DefaultClient) GetTubeStatus() ([]Report, error) {
 }
 
 // NewClient returns a pointer to a TFL client
-func NewClient() *DefaultClient {
+func NewClient(c *http.Client) *DefaultClient {
 	client := DefaultClient{
+		http:    c,
 		baseURL: "https://api.tfl.gov.uk/",
 	}
 	return &client
@@ -73,9 +75,9 @@ func (c *InMemoryCachedClient) SetBaseURL(newURL string) {
 }
 
 // NewCachedClient returns a pointer to a TFL in memory cached client
-func NewCachedClient(cacheDurationSeconds int) *InMemoryCachedClient {
+func NewCachedClient(c *http.Client, cacheDurationSeconds int) *InMemoryCachedClient {
 	client := InMemoryCachedClient{
-		Client:                      NewClient(),
+		Client:                      NewClient(c),
 		TubeStatus:                  []Report{},
 		LastUpdated:                 time.Now().Add(-time.Duration(cacheDurationSeconds+1) * time.Second),
 		InvalidateIntervalInSeconds: float64(cacheDurationSeconds),

@@ -43,7 +43,7 @@ func TestDecodeTflResponseMalformed(t *testing.T) {
 }
 
 func TestNewClient(t *testing.T) {
-	client := NewClient()
+	client := NewClient(http.DefaultClient)
 
 	if client == nil {
 		t.Error("Client wasn't generated.")
@@ -57,7 +57,7 @@ func TestGetTubeStatus(t *testing.T) {
 		fmt.Fprintln(w, string(mockTflResponse))
 	}))
 	defer ts.Close()
-	client := NewClient()
+	client := NewClient(http.DefaultClient)
 	client.SetBaseURL(ts.URL + "/")
 
 	statuses, err := client.GetTubeStatus()
@@ -81,10 +81,10 @@ func TestReportArrayToMap(t *testing.T) {
 	if len(reportMap) != 3 {
 		t.Error("Mapper did not map all lines")
 	}
-	if (reportMap["line1"].LineStatuses[0].StatusSeverity != 1) {
+	if reportMap["line1"].LineStatuses[0].StatusSeverity != 1 {
 		t.Error("Status serverity for line1 is not correct")
 	}
-	if (reportMap["line3"].LineStatuses[1].StatusSeverity != 7) {
+	if reportMap["line3"].LineStatuses[1].StatusSeverity != 7 {
 		t.Error("Status serverity for line3 is not correct")
 	}
 }
@@ -95,7 +95,7 @@ func TestGetTubeStatusFailure(t *testing.T) {
 		fmt.Fprintln(w, nil)
 	}))
 	defer ts.Close()
-	client := NewClient()
+	client := NewClient(http.DefaultClient)
 	client.SetBaseURL(ts.URL + "/")
 
 	_, err := client.GetTubeStatus()
